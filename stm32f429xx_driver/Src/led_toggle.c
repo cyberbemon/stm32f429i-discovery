@@ -1,10 +1,3 @@
-/*
- * led_toggle.c
- *
- *  Created on: 2 Dec 2025
- *      Author: johny
- */
-
 #include <stdint.h>
 #include "stm32f429xx.h"
 #include "stm32f429xx_gpio_driver.h"

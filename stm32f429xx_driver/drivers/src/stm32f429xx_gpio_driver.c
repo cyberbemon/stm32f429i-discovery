@@ -107,6 +107,7 @@ void GPIO_Init(GPIO_Handle_t *pGPIOHandle) {
 		}
 
 		// 2. configure the GPIO port selection in SYSCFG_EXTICR
+		// TODO: Document this properly
 		uint8_t temp1 = pGPIOHandle->GPIO_PinConfig.GPIO_PinNumber / 4;
 		uint8_t temp2 = pGPIOHandle->GPIO_PinConfig.GPIO_PinNumber % 4;
 		uint8_t portcode = GPIO_BASEADDR_TO_CODE(pGPIOHandle->pGPIOx);
@@ -223,6 +224,74 @@ void GPIO_ToggleOutputPin(GPIO_RegDef_t *pGPIOx, uint8_t PinNumber) {
 
 /*
  * IRQ configuration and ISR handling
+ * Refer to cortex m4 generic user guide to find the
+ * interrupt set-enable Registers
  */
-void GPIO_IRQConfig(uint8_t IRQNumber, uint8_t IRQPriority, uint8_t EnorDi);
-void GPIO_IRQHandling(uint8_t PinNumber);
+void GPIO_IRQInterruptConfig(uint8_t IRQNumber, uint8_t EnorDi)
+{
+	if(EnorDi == ENABLE)
+	{
+		if(IRQNumber <= 31)
+		{
+			// program ISER0 register
+			NVIC_ISER->ISER0 |= (1 << IRQNumber);
+		}
+		else if(IRQNumber > 31 && IRQNumber < 64)
+		{
+			// program ISER1 register
+			NVIC_ISER->ISER1 |= (1 << (IRQNumber % 32));
+		}
+		else if(IRQNumber >= 64 && IRQNumber < 96)
+		{
+			// program ISER2 register
+			NVIC_ISER->ISER2 |= (1 << (IRQNumber % 64));
+		}
+	}
+	else
+	{
+		if(IRQNumber <= 31)
+		{
+			// program ICER0 register
+			NVIC_ICER->ICER0 |= (1 << IRQNumber);
+		}
+		else if (IRQNumber > 31 && IRQNumber < 64)
+		{
+			// program ICER1 register
+			NVIC_ICER->ICER1 |= (1 << (IRQNumber % 32));
+		}
+		else if (IRQNumber >= 64 && IRQNumber < 96)
+		{
+			// program ICER2 register
+			NVIC_ICER->ICER2 |= (1 << (IRQNumber % 64));
+		}
+	}
+}
+
+void GPIO_IRQPriorityConfig(uint8_t IRQNumber, uint8_t IRQPriority)
+{
+	// Calculate register index and bit position
+	uint8_t ipr_index = IRQNumber / 4;
+	//uint8_t ipr_shift = (IRQNumber % 4) * 8;
+	uint8_t ipr_shift = IRQNumber % 4;
+
+	uint8_t shift_amount = ( 8 * ipr_shift) + ( 8 - NO_PR_BITS_IMPLEMENTED) ;
+
+
+	// Clear existing bits and set new priority (shifted to MSB)
+
+	*(  NVIC_PR_BASE_ADDR + ipr_index ) |=  ( IRQPriority << shift_amount );
+
+	//NVIC_IP->IP[ipr_index] |= (IRQPriority << shift_amount);
+
+	/*NVIC_IP->IP[ipr_index] = (NVIC_IP->IP[ipr_index] & ~(0xFFUL << ipr_shift)) |
+			(((IRQPriority << (8 - NO_PR_BITS_IMPLEMENTED)) & 0xFFUL) << ipr_shift);*/
+
+}
+void GPIO_IRQHandling(uint8_t PinNumber)
+{
+	//clear the EXTI PR register corresponding to the pin number
+	if(EXTI->PR &(1 << PinNumber))
+	{
+		EXTI->PR |= (1 << PinNumber);
+	}
+}

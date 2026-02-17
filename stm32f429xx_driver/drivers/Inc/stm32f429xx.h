@@ -1,7 +1,53 @@
-#include <stdint.h>
+#include<stddef.h>
+#include<stdint.h>
 
 #ifndef INC_STM32F429XX_H_
 #define INC_STM32F429XX_H_
+
+
+/*
+ * ARM Cortex M4 Processor NVIC ISERx register addresses
+ */
+#define NO_PR_BITS_IMPLEMENTED	4 //
+
+#define NVIC_ISER_BASEADDR  	0xE000E100U
+
+#define NVIC_PR_BASE_ADDR 	((volatile uint32_t*)0xE000E400)
+
+typedef struct{
+	volatile uint32_t ISER0;
+	volatile uint32_t ISER1;
+	volatile uint32_t ISER2;
+	volatile uint32_t ISER3;
+}NVIC_ISER_Type;
+
+#define NVIC_ISER ((NVIC_ISER_Type *)NVIC_ISER_BASEADDR)
+
+/*
+ * ARM Cortex M4 Processor NVIC ICERx register addresses
+ */
+
+#define NVIC_ICER_BASEADDR	0XE000E180U
+
+typedef struct{
+	volatile uint32_t ICER0;
+	volatile uint32_t ICER1;
+	volatile uint32_t ICER2;
+	volatile uint32_t ICER3;
+}NVIC_ICER_Type;
+
+#define NVIC_ICER ((NVIC_ICER_Type*)NVIC_ICER_BASEADDR)
+
+/*
+ *  Arm Cortex M4 Processor NVIC IPR register addresses
+ */
+#define NVIC_IPR_BASEADDR 			0xE000E400U
+
+typedef struct{
+	volatile uint32_t IP[60]; // Array of Interrupt Priority Registers (IPR0 to IPR59)
+}NVIC_IP_Type;
+
+#define NVIC_IP ((NVIC_IP_Type *)NVIC_IPR_BASEADDR)
 
 /*
  * Base addresses of flash and SRAM memories
@@ -11,7 +57,7 @@
 #define SRAM1_BASEADDR				0x20000000U
 #define SRARM2_BASERADDR			0x2001C000U
 #define ROM_BASEADDR				0x1FFF0000U
-#define SRAM  SRAM1_BASEADDR
+#define SRAM  						SRAM1_BASEADDR
 
 /*
  * AHBx and APBx bus peripheral base addresses
@@ -298,5 +344,101 @@ typedef struct
 #define RESET 						DISABLE
 #define GPIO_PIN_SET				SET
 #define GPIO_PIN_RESET				RESET
+
+// IRQ number of STM32429xx
+#define IRQ_NO_EXTI0		6
+#define IRQ_NO_EXTI1		7
+#define IRQ_NO_EXTI2		8
+#define IRQ_NO_EXTI3		9
+#define IRQ_NO_EXTI4		10
+#define IRQ_NO_EXTI9_5		23
+#define IRQ_NO_EXTI15_10	40
+
+
+/*
+ * 				SPI
+ */
+
+#define SPI1  				((SPI_RegDef_t*)SPI1_BASEADDR)
+#define SPI2  				((SPI_RegDef_t*)SPI2_BASEADDR)
+#define SPI3  				((SPI_RegDef_t*)SPI3_BASEADDR)
+
+#define FLAG_RESET         RESET
+#define FLAG_SET 			SET
+
+/*
+ * peripheral register definition structure for SPI
+ */
+typedef struct
+{
+	volatile uint32_t CR1;        /*!< TODO,     										Address offset: 0x00 */
+	volatile uint32_t CR2;        /*!< TODO,     										Address offset: 0x04 */
+	volatile uint32_t SR;         /*!< TODO,     										Address offset: 0x08 */
+	volatile uint32_t DR;         /*!< TODO,     										Address offset: 0x0C */
+	volatile uint32_t CRCPR;      /*!< TODO,     										Address offset: 0x10 */
+	volatile uint32_t RXCRCR;     /*!< TODO,     										Address offset: 0x14 */
+	volatile uint32_t TXCRCR;     /*!< TODO,     										Address offset: 0x18 */
+	volatile uint32_t I2SCFGR;    /*!< TODO,     										Address offset: 0x1C */
+	volatile uint32_t I2SPR;      /*!< TODO,     										Address offset: 0x20 */
+} SPI_RegDef_t;
+
+
+
+/*
+* Clock Enable Macros for SPIx peripherals
+*/
+#define SPI1_PCLK_EN() (RCC->APB2ENR |= (1 << 12))
+#define SPI2_PCLK_EN() (RCC->APB1ENR |= (1 << 14))
+#define SPI3_PCLK_EN() (RCC->APB1ENR |= (1 << 15))
+#define SPI4_PCLK_EN() (RCC->APB2ENR |= (1 << 13))
+
+
+/******************************************************************************************
+ *Bit position definitions of SPI peripheral
+ ******************************************************************************************/
+/*
+ * Bit position definitions SPI_CR1
+ */
+#define SPI_CR1_CPHA     				 0
+#define SPI_CR1_CPOL      				 1
+#define SPI_CR1_MSTR     				 2
+#define SPI_CR1_BR   					 3
+#define SPI_CR1_SPE     				 6
+#define SPI_CR1_LSBFIRST   			 	 7
+#define SPI_CR1_SSI     				 8
+#define SPI_CR1_SSM      				 9
+#define SPI_CR1_RXONLY      		 	10
+#define SPI_CR1_DFF     			 	11
+#define SPI_CR1_CRCNEXT   			 	12
+#define SPI_CR1_CRCEN   			 	13
+#define SPI_CR1_BIDIOE     			 	14
+#define SPI_CR1_BIDIMODE      			15
+
+/*
+ * Bit position definitions SPI_CR2
+ */
+#define SPI_CR2_RXDMAEN		 			0
+#define SPI_CR2_TXDMAEN				 	1
+#define SPI_CR2_SSOE				 	2
+#define SPI_CR2_FRF						4
+#define SPI_CR2_ERRIE					5
+#define SPI_CR2_RXNEIE				 	6
+#define SPI_CR2_TXEIE					7
+
+
+/*
+ * Bit position definitions SPI_SR
+ */
+#define SPI_SR_RXNE						0
+#define SPI_SR_TXE				 		1
+#define SPI_SR_CHSIDE				 	2
+#define SPI_SR_UDR					 	3
+#define SPI_SR_CRCERR				 	4
+#define SPI_SR_MODF					 	5
+#define SPI_SR_OVR					 	6
+#define SPI_SR_BSY					 	7
+#define SPI_SR_FRE					 	8
+
+
 
 #endif /* INC_STM32F429XX_H_ */
